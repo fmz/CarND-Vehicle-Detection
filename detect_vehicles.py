@@ -31,8 +31,11 @@ def apply_threshold(heatmap, threshold):
     # Return thresholded map
     return heatmap
 
-def draw_labeled_bboxes(img, labels):
+def draw_labeled_bboxes(img, labels, filled=False):
     # Iterate through all detected cars
+    thickness = 6
+    if filled == True:
+        thickness = cv2.FILLED
     for car_number in range(1, labels[1]+1):
         # Find pixels with each car_number label value
         nonzero = (labels[0] == car_number).nonzero()
@@ -42,7 +45,7 @@ def draw_labeled_bboxes(img, labels):
         # Define a bounding box based on min/max x and y
         bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
         # Draw the box on the image
-        cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), 6)
+        cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), thickness)
     # Return the image
     return img
 
@@ -156,7 +159,9 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell,
 
     # Just for the writeup
     if out_examples:
-        mpimg.imsave("examples/heatmap_example.jpg", heatmap, cmap='hot')
+        mpimg.imsave("examples/heatmap_example.jpg", heat, cmap='hot')
+        mpimg.imsave("examples/heatmap_labels.jpg", draw_labeled_bboxes(np.zeros_like(draw_img),
+            labels, True), cmap='gray')
         mpimg.imsave("examples/result_example.jpg", draw_img)
 
     return draw_img

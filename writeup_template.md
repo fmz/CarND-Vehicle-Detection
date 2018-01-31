@@ -17,12 +17,12 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 [car]: ./examples/car.png
 [notcar]: ./examples/not_car.png
-[hog]: ./examples/HOG_example.jpg
+[hog]: ./examples/HOG_example.png
 [test_img_grid]: ./examples/test_img_grid.jpg
+[bboxes]: ./examples/bboxes_example.jpg
 [heatmap]: ./examples/heatmap.jpg
-[bboxes_and_heat]: ./examples/bboxes_and_heat.png
-[heatmap_label]: ./examples/labels_map.png
-[label_output]: ./examples/output_bboxes.png
+[heatmap_label]: ./examples/heatmap_labels.jpg
+[label_output]: ./examples/result_example.jpg
 [video]: ./project_video_out.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -52,8 +52,6 @@ I then explored different color spaces and different `skimage.hog()` parameters 
 
 Here is an example using the `YCrCb` color space and HOG parameters of `orientations=13`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
-
-![alt text][image2]
 
 Note that I also added in color features, like a color-channel histogram, and the raw pixels flattened to represent spatial features.
 
@@ -90,13 +88,15 @@ Here's a [link to my video result](./project_video_out.mp4)
 
 I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
 
-Here's an example result showing the heatmap from the test images, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on one of them:
+Here's an example result showing the heatmap from a test image, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid it:
 
-### Here are six frames and their corresponding heatmaps:
+### Here is a test image and its corresponding heatmap:
 
-![alt text][bboxes_and_heat]
+Bounding Boxes 		|  Heatmap
+:------------------:|:-------------------------:
+![bboxes]  			|  ![heatmap]
 
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
+### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap:
 ![alt text][heatmap_label]
 
 ### Here the resulting bounding boxes are drawn onto the last frame in the series:
