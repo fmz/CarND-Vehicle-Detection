@@ -49,7 +49,7 @@ def draw_labeled_bboxes(img, labels):
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell,
         cell_per_block, spatial_size, hist_bins, spatial_feat, color_space, hist_feat,
-        hog_feat, out_heatmap):
+        hog_feat, out_examples):
 
     draw_img = np.copy(img)
     img = img.astype(np.float32)/255
@@ -96,6 +96,9 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell,
     hog3 = get_hog_features(ch3, orient, pix_per_cell, cell_per_block, feature_vec=False)
 
     box_list = []
+    bboxes_img = []
+    if out_examples:
+        bboxes_img = draw_img.copy()
 
     for xb in range(nxsteps):
         for yb in range(nysteps):
@@ -135,21 +138,26 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell,
                 win_draw = np.int(window*scale)
                 box_list.append (((xbox_left, ytop_draw+ystart),(xbox_left+win_draw,ytop_draw+ \
                     win_draw+ystart)))
-                #cv2.rectangle(draw_img,(xbox_left, ytop_draw+ystart),(xbox_left+win_draw,ytop_draw+ \
-                #    win_draw+ystart),(0,0,255),6)
+                if out_examples:
+                    cv2.rectangle(bboxes_img,(xbox_left, ytop_draw+ystart),(xbox_left+win_draw,
+                        ytop_draw+win_draw+ystart),(0,0,25),6)
 
+    # Just for the writeup
+    if out_examples and bboxes_img != []:
+        mpimg.imsave("examples/bboxes_example.jpg", bboxes_img)
 
     heat = np.zeros_like(draw_img[:,:,0]).astype(np.float)
     heat = add_heat(heat, box_list)
     heat = apply_threshold(heat, 2)
     heatmap = np.clip(heat, 0, 255)
     labels = label(heatmap)
+
     draw_img = draw_labeled_bboxes(draw_img, labels)
 
     # Just for the writeup
-    if out_heatmap:
-        mpimg.imsave("heatmap_example.jpg", heatmap, cmap='hot')
-        mpimg.imsave("boxes_example.jpg", draw_img)
+    if out_examples:
+        mpimg.imsave("examples/heatmap_example.jpg", heatmap, cmap='hot')
+        mpimg.imsave("examples/result_example.jpg", draw_img)
 
     return draw_img
 
@@ -290,6 +298,50 @@ class car_detector:
         white_clip = clip.fl_image(_find_cars)
         white_clip.write_videofile(out_file, audio=False)
 
+    # For the writeup.
+    def hog_example(self, cars, notcars):
+        car = mpimg.imread(cars[0])
+        notcar = mpimg.imread(notcars[0])
+
+        car = cv2.cvtColor(car, cv2.COLOR_RGB2YCrCb)
+        notcar = cv2.cvtColor(notcar, cv2.COLOR_RGB2YCrCb)
+
+        images = []
+        labels = []
+
+        car = car[:, :, 0]
+        images.append(car)
+        labels.append("Car Y Channel")
+
+        _, car_hog = get_hog_features(car, self.orient, self.pix_per_cell, self.cell_per_block,
+            vis=True, feature_vec=False)
+        images.append(car_hog)
+        labels.append("Y Channel HOG")
+
+
+        notcar = notcar[:, :, 0]
+        images.append(notcar)
+        labels.append("Not Car Y Channel")
+
+        _, notcar_hog = get_hog_features(notcar, self.orient, self.pix_per_cell, self.cell_per_block,
+                    vis=True, feature_vec=False)
+        images.append(notcar_hog)
+        labels.append("Y Channel HOG")
+
+        grid = gridspec.GridSpec(2, 2)
+        plt.figure(figsize=(8,8))
+        for i in range(len(images)):
+#           subp = plt.subplot(grid[i])
+#            subp.set_aspect('equal')
+
+            img = images[i]
+            plt.subplot(2,2,i+1)
+            plt.imshow(img, cmap='gray')
+            plt.axis('off')
+            plt.title(labels[i])
+
+        plt.show()
+
 
 if __name__ == "__main__":
     global detector
@@ -300,7 +352,10 @@ if __name__ == "__main__":
 
     test_images = glob.glob('test_images/*.jpg')
 
-    detector = car_detector(cars, notcars, True, 'model.p')
+    detector = car_detector(cars, notcars, False, 'model.p')
+
+    detector.hog_example(cars, notcars)
+
     detector.detect_image(test_images=test_images, outdir="output_images")
-    detector.detect_video("project_video.mp4", "project_video_out.mp4")
+#    detector.detect_video("project_video.mp4", "project_video_out.mp4")
 
